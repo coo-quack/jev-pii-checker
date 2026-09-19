@@ -15,6 +15,11 @@ export interface NameCandidate {
   end: number;
 }
 
+export interface NameCandidatesResult {
+  candidates: NameCandidate[];
+  titleMap: Map<string, string>; // maps candidate text -> title word that was stripped
+}
+
 const PARTICLES = new Set([
   "の",
   "を",
@@ -71,26 +76,103 @@ function isCapitalizedLatin(text: string): boolean {
   const firstChar = text[0];
   if (!/[A-Z]/.test(firstChar)) return false;
   // Rest must be letters, optionally with apostrophe or hyphen
+  // This handles hyphenated names like Al-Rashid, Jean-Pierre as single words
   const rest = text.slice(1);
   return /^[a-zA-Z'-]*$/.test(rest);
 }
 
-export function generateNameCandidates(text: string, maxCandidates = 200): NameCandidate[] {
+function stripPossessive(text: string): { text: string; end: number } {
+  // Strip trailing 's or 's (curly quote) from text
+  if (text.endsWith("'s")) {
+    return { text: text.slice(0, -2), end: -2 };
+  }
+  if (text.endsWith("'s")) {
+    return { text: text.slice(0, -2), end: -2 };
+  }
+  return { text, end: 0 };
+}
+
+// English title/role words to exclude from the start of candidates
+const ENGLISH_TITLES = new Set([
+  "patient",
+  "rabbi",
+  "imam",
+  "priest",
+  "pastor",
+  "dr",
+  "mr",
+  "ms",
+  "mrs",
+  "miss",
+  "prof",
+  "professor",
+  "doctor",
+  "manager",
+  "director",
+  "president",
+  "ceo",
+  "cto",
+  "sir",
+  "madam",
+  "lord",
+  "lady",
+  "captain",
+  "officer",
+  "agent",
+  "user",
+  "customer",
+  "client",
+  "member",
+  "members",
+]);
+
+export function generateNameCandidates(text: string, maxCandidates = 600): NameCandidate[] {
+  const result = generateNameCandidatesWithTitles(text, maxCandidates);
+  return result.candidates;
+}
+
+export function generateNameCandidatesWithTitles(
+  text: string,
+  maxCandidates = 600,
+): NameCandidatesResult {
   const segmenter = new Intl.Segmenter("ja", { granularity: "word" });
   const segments = Array.from(segmenter.segment(text));
 
   const candidates = new Map<string, NameCandidate>();
+  const titleMap = new Map<string, string>();
 
   for (const seg of segments) {
     const segment = seg.segment;
     if (!segment) continue;
 
     const hasKanjiKatakanaOrLatin = segment.split("").some((c) => isKanjiKatakanaOrLatin(c));
+    // A Latin-script word is a name candidate only when capitalized: "name",
+    // "report" and the like otherwise reach the judge, which reads them
+    // literally ("My name is" → 「name」 refers to a person, 0.97).
+    const isLowercaseLatin = /^[a-z]/.test(segment);
     const isPureHira = isPureHiragana(segment);
     const isPureDig = isPureDigits(segment);
     const isParticle = PARTICLES.has(segment);
 
-    if (!hasKanjiKatakanaOrLatin || isPureHira || isPureDig || isParticle) {
+    // Skip possessive-suffixed words
+    const hasPossessiveSuffix = segment.endsWith("'s") || segment.endsWith("'s");
+
+    // Skip Japanese titles
+    const isJapaneseTitle = TITLE_SUFFIXES.has(segment);
+
+    // Skip English titles (case-insensitive)
+    const isEnglishTitle = ENGLISH_TITLES.has(segment.toLowerCase());
+
+    if (
+      !hasKanjiKatakanaOrLatin ||
+      isLowercaseLatin ||
+      isPureHira ||
+      isPureDig ||
+      isParticle ||
+      hasPossessiveSuffix ||
+      isJapaneseTitle ||
+      isEnglishTitle
+    ) {
       continue;
     }
 
@@ -171,67 +253,108 @@ export function generateNameCandidates(text: string, maxCandidates = 200): NameC
     }
   }
 
-  // Merge Latin multi-word names: capitalized words separated by space segments
+  // Latin multi-word names. Work on tokens rather than raw segments so that a
+  // hyphenated name (Al-Rashid, Jean-Pierre) is one word: the segmenter splits
+  // it into "Al", "-", "Rashid".
+  type Token = { text: string; start: number; end: number; space: boolean };
+  const tokens: Token[] = [];
   for (let i = 0; i < segments.length; i++) {
-    const seg1 = segments[i];
-    const t1 = seg1.segment;
-
-    if (!t1 || !isCapitalizedLatin(t1)) continue;
-
-    // Check for 2-word Latin name: Word, Space, Word
-    if (i + 2 < segments.length) {
-      const seg2 = segments[i + 1];
-      const seg3 = segments[i + 2];
-
-      const t2 = seg2.segment;
-      const t3 = seg3.segment;
-
-      if (t2 === " " && t3 && isCapitalizedLatin(t3)) {
-        const merged = t1 + t2 + t3;
-        const key = `${seg1.index}-${seg3.index + t3.length}`;
-        candidates.set(key, {
-          text: merged,
-          start: seg1.index,
-          end: seg3.index + t3.length,
-        });
-      }
+    const seg = segments[i];
+    const t = seg.segment;
+    if (!t) continue;
+    if (t === " ") {
+      tokens.push({ text: t, start: seg.index, end: seg.index + 1, space: true });
+      continue;
     }
+    if (!isCapitalizedLatin(t)) {
+      tokens.push({ text: t, start: seg.index, end: seg.index + t.length, space: false });
+      continue;
+    }
+    // Join Word-Word chains with no spaces around the hyphen.
+    let joined = t;
+    let joinedEnd = seg.index + t.length;
+    while (
+      i + 2 < segments.length &&
+      segments[i + 1].segment === "-" &&
+      segments[i + 1].index === joinedEnd &&
+      isCapitalizedLatin(segments[i + 2].segment) &&
+      segments[i + 2].index === joinedEnd + 1
+    ) {
+      joined += `-${segments[i + 2].segment}`;
+      joinedEnd = segments[i + 2].index + segments[i + 2].segment.length;
+      i += 2;
+    }
+    tokens.push({ text: joined, start: seg.index, end: joinedEnd, space: false });
+  }
 
-    // Check for 3-word Latin name: Word, Space, Word, Space, Word
-    if (i + 4 < segments.length) {
-      const seg2 = segments[i + 1];
-      const seg3 = segments[i + 2];
-      const seg4 = segments[i + 3];
-      const seg5 = segments[i + 4];
+  const isNameWord = (tok: Token | undefined): tok is Token =>
+    !!tok &&
+    !tok.space &&
+    isCapitalizedLatin(tok.text) &&
+    !ENGLISH_TITLES.has(tok.text.toLowerCase());
 
-      const t2 = seg2.segment;
-      const t3 = seg3.segment;
-      const t4 = seg4.segment;
-      const t5 = seg5.segment;
+  const addLatin = (first: Token, last: Token, words: Token[], titleBefore?: Token) => {
+    let textOut = words.map((w) => w.text).join(" ");
+    let endPos = last.end;
+    const stripped = stripPossessive(textOut);
+    textOut = stripped.text;
+    endPos += stripped.end;
+    if (textOut.length === 0) return;
+    const key = `${first.start}-${endPos}`;
+    candidates.set(key, { text: textOut, start: first.start, end: endPos });
+    if (titleBefore) titleMap.set(textOut, titleBefore.text);
+  };
 
-      if (
-        t2 === " " &&
-        t3 &&
-        isCapitalizedLatin(t3) &&
-        t4 === " " &&
-        t5 &&
-        isCapitalizedLatin(t5)
-      ) {
-        const merged = t1 + t2 + t3 + t4 + t5;
-        const key = `${seg1.index}-${seg5.index + t5.length}`;
-        candidates.set(key, {
-          text: merged,
-          start: seg1.index,
-          end: seg5.index + t5.length,
-        });
+  for (let i = 0; i < tokens.length; i++) {
+    const w1 = tokens[i];
+    if (!isNameWord(w1)) continue;
+    // A title immediately before the name (Rabbi David Goldman) is recorded, never merged.
+    const prevWord = i >= 2 && tokens[i - 1].space ? tokens[i - 2] : undefined;
+    const titleBefore =
+      prevWord && !prevWord.space && ENGLISH_TITLES.has(prevWord.text.toLowerCase())
+        ? prevWord
+        : undefined;
+    // Hyphenated single words are candidates in their own right (Al-Rashid).
+    if (w1.text.includes("-")) addLatin(w1, w1, [w1], titleBefore);
+    const w2 = tokens[i + 2];
+    if (tokens[i + 1]?.space && isNameWord(w2)) {
+      addLatin(w1, w2, [w1, w2], titleBefore);
+      const w3 = tokens[i + 4];
+      if (tokens[i + 3]?.space && isNameWord(w3)) {
+        addLatin(w1, w3, [w1, w2, w3], titleBefore);
       }
     }
   }
 
   const result = Array.from(candidates.values());
+
+  // Sort by start position first
   result.sort((a, b) => a.start - b.start);
 
-  return result.slice(0, maxCandidates);
+  // If we need to truncate, keep longer candidates first at each position
+  if (result.length > maxCandidates) {
+    // Group by start position, then sort each group by length (longest first)
+    const byStart = new Map<number, typeof result>();
+    for (const cand of result) {
+      if (!byStart.has(cand.start)) {
+        byStart.set(cand.start, []);
+      }
+      byStart.get(cand.start)!.push(cand);
+    }
+
+    const truncated: typeof result = [];
+    for (const [, group] of byStart) {
+      group.sort((a, b) => b.end - b.start - (a.end - a.start));
+      truncated.push(...group);
+      if (truncated.length >= maxCandidates) {
+        break;
+      }
+    }
+
+    return { candidates: truncated.slice(0, maxCandidates), titleMap };
+  }
+
+  return { candidates: result, titleMap };
 }
 
 export function attachTitleSuffix(baseCandidates: NameCandidate[], text: string): NameCandidate[] {

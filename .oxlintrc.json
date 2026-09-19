@@ -4,5 +4,5 @@
     "suspicious": "warn"
   },
   "plugins": ["typescript", "import"],
-  "ignorePatterns": ["dist/", "node_modules/"]
+  "ignorePatterns": ["dist/", "node_modules/", "docs/.vitepress/cache/", "docs/.vitepress/dist/"]
 }

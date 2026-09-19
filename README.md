@@ -4,6 +4,11 @@
 
 CLI for scanning text and files for PII using TypeSafe's Jev model, regex patterns, and word segmentation.
 
+📖 **[Documentation](https://coo-quack.github.io/jev-pii-checker/)** — getting started, CLI reference, how the three layers work, categories and sensitivity levels, limitations.
+
+> [!WARNING]
+> **The scanned text is sent to TypeSafe's Jev API.** Detection happens on their servers, so this tool is not a local-only guard: everything you scan leaves your machine. Use it only on data you are allowed to hand to a third party, such as text you were going to send to an LLM anyway, and check TypeSafe's data-retention terms before scanning anything you would not send there directly. For a guard that never sends anything, see [sensitive-canary](https://github.com/coo-quack/sensitive-canary). Details in [SECURITY.md](SECURITY.md).
+
 ## Features
 
 **Three-layer detection:**

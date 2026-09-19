@@ -24,6 +24,18 @@ CLI for scanning text and files for PII using TypeSafe's Jev model, regex patter
 
 ## Install
 
+Install globally from npm:
+
+```bash
+bun install -g @coo-quack/jev-pii-checker
+# or run without installing
+bunx @coo-quack/jev-pii-checker report.txt --json
+```
+
+Requires Node.js 20+ or Bun.
+
+### From source
+
 ```bash
 bun install
 bun run build

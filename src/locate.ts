@@ -152,7 +152,7 @@ export async function locatePII(
 
       findings.push({
         type: "number",
-        value: match.text,
+        value: text.slice(match.start, match.end),
         start: match.start,
         end: match.end,
         probability: maxProb,
@@ -186,11 +186,15 @@ export async function locatePII(
       const nameResponse = await judge.systemOne({ text }, nameQuestions);
       inputTokens += nameResponse.usage.input_tokens;
 
-      const passingCandidates: typeof titleAttached = [];
+      const passingCandidates: Array<{ text: string; start: number; end: number; prob: number }> =
+        [];
       for (const key of Object.keys(candidateMap)) {
         const prob = (nameResponse.answers[key] as { noul?: number }).noul ?? 0;
         if (prob >= spanThreshold) {
-          passingCandidates.push(candidateMap[key]);
+          passingCandidates.push({
+            ...candidateMap[key],
+            prob,
+          });
         }
       }
 
@@ -201,7 +205,7 @@ export async function locatePII(
           value: text.substring(span.start, span.end),
           start: span.start,
           end: span.end,
-          probability: 0.8,
+          probability: span.probability,
           pii: true,
         });
       }
@@ -212,8 +216,8 @@ export async function locatePII(
 }
 
 function assembleSpans(
-  candidates: Array<{ text: string; start: number; end: number }>,
-): Array<{ start: number; end: number }> {
+  candidates: Array<{ text: string; start: number; end: number; prob: number }>,
+): Array<{ start: number; end: number; probability: number }> {
   if (candidates.length === 0) return [];
 
   const sorted = [...candidates].sort((a, b) => {
@@ -221,24 +225,30 @@ function assembleSpans(
     return b.end - b.start - (a.end - a.start);
   });
 
-  const spans: Array<{ start: number; end: number }> = [];
+  const spans: Array<{ start: number; end: number; probability: number }> = [];
   let current: (typeof sorted)[0] | null = null;
+  let currentMaxProb = 0;
 
   for (const cand of sorted) {
     if (!current) {
       current = cand;
+      currentMaxProb = cand.prob;
     } else if (cand.start <= current.end) {
       if (cand.end > current.end) {
         current = cand;
+        currentMaxProb = Math.max(currentMaxProb, cand.prob);
+      } else {
+        currentMaxProb = Math.max(currentMaxProb, cand.prob);
       }
     } else {
-      spans.push({ start: current.start, end: current.end });
+      spans.push({ start: current.start, end: current.end, probability: currentMaxProb });
       current = cand;
+      currentMaxProb = cand.prob;
     }
   }
 
   if (current) {
-    spans.push({ start: current.start, end: current.end });
+    spans.push({ start: current.start, end: current.end, probability: currentMaxProb });
   }
 
   return spans;

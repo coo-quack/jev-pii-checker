@@ -66,6 +66,15 @@ function isPureDigits(text: string): boolean {
   return text.length > 0 && /^\d+$/.test(text);
 }
 
+function isCapitalizedLatin(text: string): boolean {
+  if (text.length === 0) return false;
+  const firstChar = text[0];
+  if (!/[A-Z]/.test(firstChar)) return false;
+  // Rest must be letters, optionally with apostrophe or hyphen
+  const rest = text.slice(1);
+  return /^[a-zA-Z'-]*$/.test(rest);
+}
+
 export function generateNameCandidates(text: string, maxCandidates = 200): NameCandidate[] {
   const segmenter = new Intl.Segmenter("ja", { granularity: "word" });
   const segments = Array.from(segmenter.segment(text));
@@ -159,6 +168,63 @@ export function generateNameCandidates(text: string, maxCandidates = 200): NameC
         start: seg1.index,
         end: seg3.index + t3.length,
       });
+    }
+  }
+
+  // Merge Latin multi-word names: capitalized words separated by space segments
+  for (let i = 0; i < segments.length; i++) {
+    const seg1 = segments[i];
+    const t1 = seg1.segment;
+
+    if (!t1 || !isCapitalizedLatin(t1)) continue;
+
+    // Check for 2-word Latin name: Word, Space, Word
+    if (i + 2 < segments.length) {
+      const seg2 = segments[i + 1];
+      const seg3 = segments[i + 2];
+
+      const t2 = seg2.segment;
+      const t3 = seg3.segment;
+
+      if (t2 === " " && t3 && isCapitalizedLatin(t3)) {
+        const merged = t1 + t2 + t3;
+        const key = `${seg1.index}-${seg3.index + t3.length}`;
+        candidates.set(key, {
+          text: merged,
+          start: seg1.index,
+          end: seg3.index + t3.length,
+        });
+      }
+    }
+
+    // Check for 3-word Latin name: Word, Space, Word, Space, Word
+    if (i + 4 < segments.length) {
+      const seg2 = segments[i + 1];
+      const seg3 = segments[i + 2];
+      const seg4 = segments[i + 3];
+      const seg5 = segments[i + 4];
+
+      const t2 = seg2.segment;
+      const t3 = seg3.segment;
+      const t4 = seg4.segment;
+      const t5 = seg5.segment;
+
+      if (
+        t2 === " " &&
+        t3 &&
+        isCapitalizedLatin(t3) &&
+        t4 === " " &&
+        t5 &&
+        isCapitalizedLatin(t5)
+      ) {
+        const merged = t1 + t2 + t3 + t4 + t5;
+        const key = `${seg1.index}-${seg5.index + t5.length}`;
+        candidates.set(key, {
+          text: merged,
+          start: seg1.index,
+          end: seg5.index + t5.length,
+        });
+      }
     }
   }
 

@@ -27,26 +27,54 @@ The gate also produces a **sensitivity score** (none / low / high) using the IBM
 Extract surface patterns:
 
 - **Email**: RFC 5322 simplified (reject noreply@, corporate addresses)
-- **Phone**: JP (+81, 090-xxxx, 0120) and international (+1 555, etc.)
+- **Phone**: JP (+81, 090-xxxx, 0120, with spaces and parentheses) and international (+1 555, etc.); filter ISO dates, ISBNs, labelled order numbers
 - **Digit Strings**: 10–16 chars; filter corporate patterns (payment gateways, order numbers, IPs)
+- **Labelled Short IDs**: Keyword-gated patterns for passport, license, and driver ID (e.g., "Passport: AB123456")
 
 **Cost**: Zero—purely pattern matching.
 
-**Output**: Candidate spans with no judgment. Not all emails/phones are PII (e.g., support hotlines).
+**Output**: Candidate spans with no judgment. Not all emails/phones are PII (e.g., support hotlines, toll-free numbers).
 
 ## Layer 3: Jev Judgment
 
-For each candidate, ask: "Is this the [type] of an identifiable individual (vs. system/corporate)?"
+### Contacts (Email / Phone)
 
-**For emails**: "Is this a personal contact vs. support line / noreply?"
+All regex-found emails and phones are reported as findings.
 
-**For phones**: "Is this a personal number vs. business line?"
+- **`pii` semantics**: `false` for generic mailboxes (noreply, info, support, contact, sales, admin, postmaster, mailer-daemon, notifications) and toll-free/navi-dial prefixes (0120, 0800, 0570, 1-800); otherwise `true` if personal-contact probability ≥ 0.2, else `false`
+- **Cost**: One token per email/phone
 
-**For names**: Generate candidates via `Intl.Segmenter`, batch-judge them, then assemble overlapping spans and attach titles.
+### Numbers
 
-**Cost**: One token per question. Up to 25 candidates can be asked in a single request.
+Pure-digit strings (10+ digits) are first disambiguated: "Is this a phone, My Number, credit card, bank account, order number, product serial, or date?"
 
-**Output**: Probability per candidate. Filter by `--span-threshold` (default 0.8).
+- **Output**: `number_type` and full probability distribution
+- **`pii` semantics**: `true` for sensitive types (my_number, credit_card, bank_account, phone, driver_licence_or_passport); `false` for non-sensitive
+- **Cost**: One token per number
+
+### Names
+
+Generate candidates via `Intl.Segmenter`, then batch-judge them with **two independent questions**:
+
+1. "Does this refer to a person (vs. place, organization, product, common word)?" — threshold ≥ 0.8
+2. "Is this the full name or part of a name?" — threshold ≥ 0.4
+
+Both thresholds must pass. Overlapping candidates are merged and assembled into spans. Honorifics (さん, 様, Mr., Ms., Dr, etc.) and title prefixes (部長, 課長, Rabbi, Patient, etc.) are detected and reported separately in `detail.honorific` / `detail.title`; they are not part of the span value itself.
+
+**Filtering**:
+
+- Names inside emails, URLs, or phone numbers are filtered out
+- Role words alone (patient, rabbi, doctor, manager, etc.) are never candidates
+- Lowercase Latin words are never candidates
+- Japanese particles and title suffixes are stripped during candidate generation
+
+**Candidate cap**: Up to 600 candidates per chunk (raised from 200); late candidates in long chunks are no longer silently dropped.
+
+**Batching**: Candidates are judged in batches of ≤25 per request (2 questions × 25 = up to 50 questions).
+
+**Cost**: Two tokens per person-name candidate.
+
+**Output**: Probability per candidate, plus two-stage scores in `detail.scores { person, name }`. Filter by `--span-threshold` (default 0.8).
 
 ## Chunking
 
@@ -61,14 +89,18 @@ Text longer than `--max-chars` (default 4000 bytes) is split at paragraph or sen
 
 ## Name Extraction
 
-Japanese names and English names are both extracted via `Intl.Segmenter('ja')` or `Intl.Segmenter('en')`.
+Japanese names and English names are both extracted via `Intl.Segmenter('ja')` with the same algorithm:
 
-1. **Candidate generation**: Segmenter produces overlapping windows (bigrams, trigrams, etc.)
-2. **Batch judgment**: Send up to 25 candidates to Jev in one request
-3. **Span assembly**: Overlapping candidates with high probability are merged
-4. **Title attachment**: Common titles (Mr., Mrs., 様, さん, 部長) are attached if found nearby
+1. **Candidate generation**: Word segmentation produces overlapping windows (unigrams, bigrams, trigrams); Latin multi-word names (capitalized sequences) are also merged into 1–3-word candidates with hyphenated names kept whole
+2. **Two-stage judgment**: Each candidate is asked two questions (person? name?); both must pass thresholds
+3. **Span assembly**: Overlapping candidates with high probability are merged into non-overlapping spans
+4. **Title attachment**: Trailing honorifics (さん, 様, Dr., Mr., etc.) are detected and reported separately; role prefixes (部長, Rabbi, Patient, etc.) are also stripped and reported
 
-**Limitation**: Japanese names with particles (助詞) or titles may be split or merged unexpectedly. E.g., "佐藤 部長" might become two spans instead of one.
+**Improvements in this version**:
+
+- Japanese surnames with titles (田中部長, 千葉さん) are now correctly found as single spans
+- Place names (千葉県) are no longer confused with person names
+- Title words are never included in the span value itself
 
 ## Why This Layering?
 

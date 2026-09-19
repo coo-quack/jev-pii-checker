@@ -18,6 +18,7 @@ CLI for scanning text and files for PII using TypeSafe's Jev model. Three-layer 
 - `bun run lint` — Biome check
 - `bun run format` — Biome format
 - `bun run dev` — Run CLI directly from source
+- `bun run eval` — Run accuracy evaluation over `tests/fixtures/eval_corpus.json` (requires `TYPESAFE_API_KEY`)
 - `bun run ci` — Full CI pipeline
 
 ## Project Structure
@@ -46,6 +47,7 @@ tests/
 
 - Unit tests: mock Judge, test extraction and span assembly logic
 - Integration tests: run real judge over ibm_corpus.json (skipped by default, set `JEV_PII_INTEGRATION=1`)
+- Evaluation: `bun run eval` over `tests/fixtures/eval_corpus.json` (60 synthetic entries); labels must never be changed to match code output
 - Test runner: Bun's native `bun test`
 
 ## Key Constraints

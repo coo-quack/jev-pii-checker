@@ -1,6 +1,6 @@
 {
   "name": "@coo-quack/jev-pii-checker",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "CLI for scanning text and files for PII using TypeSafe's Jev model.",
   "keywords": [
     "bun",
@@ -42,6 +42,7 @@
     "lint": "oxlint --deny-warnings",
     "format": "oxfmt",
     "format:check": "oxfmt --check",
+    "eval": "bun run scripts/eval.ts",
     "knip": "knip",
     "ci": "bun run lint && bun run format:check && bun run typecheck && bun run test && bun run knip",
     "docs:dev": "vitepress dev docs",

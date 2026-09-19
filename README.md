@@ -1,5 +1,7 @@
 # jev-pii-checker
 
+[![CI](https://github.com/coo-quack/jev-pii-checker/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/coo-quack/jev-pii-checker/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 CLI for scanning text and files for PII using TypeSafe's Jev model, regex patterns, and word segmentation.
 
 ## Features
@@ -23,6 +25,18 @@ CLI for scanning text and files for PII using TypeSafe's Jev model, regex patter
 - Digit disambiguation: correctly classifies credit cards, My Numbers, order numbers, product serials
 
 ## Install
+
+Install globally from npm:
+
+```bash
+bun install -g @coo-quack/jev-pii-checker
+# or run without installing
+bunx @coo-quack/jev-pii-checker report.txt --json
+```
+
+Requires Node.js 20+ or Bun.
+
+### From source
 
 ```bash
 bun install

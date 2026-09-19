@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 /**
  * CLI entry point for jev-pii-checker.
  * Reads files or stdin, runs PII detection, outputs JSON or human-readable format.

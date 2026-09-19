@@ -1,0 +1,41 @@
+{
+  "name": "@coo-quack/jev-pii-checker",
+  "version": "0.1.0",
+  "description": "CLI for scanning text and files for PII using TypeSafe's Jev model.",
+  "license": "MIT",
+  "bin": {
+    "jev-pii-checker": "dist/cli.js"
+  },
+  "files": [
+    "dist/cli.js",
+    "README.md",
+    "LICENSE"
+  ],
+  "type": "module",
+  "scripts": {
+    "dev": "bun run src/cli.ts",
+    "build": "bun build src/cli.ts --outdir dist --target node --sourcemap=external --minify && printf '#!/usr/bin/env node\\n' | cat - dist/cli.js > dist/tmp && mv dist/tmp dist/cli.js && chmod +x dist/cli.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "lint": "oxlint --deny-warnings",
+    "format": "oxfmt",
+    "format:check": "oxfmt --check",
+    "knip": "knip",
+    "ci": "bun run lint && bun run format:check && bun run typecheck && bun run test && bun run knip"
+  },
+  "dependencies": {
+    "@typesafe-ai/sdk": "0.6.0"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "knip": "6.37.0",
+    "oxfmt": "0.68.0",
+    "oxlint": "1.83.0",
+    "typescript": "7.0.2",
+    "vitest": "5.0.1"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

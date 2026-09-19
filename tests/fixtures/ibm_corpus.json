@@ -1,0 +1,172 @@
+[
+  {
+    "id": "mynumber_labeled",
+    "text": "佐藤花子さんのマイナンバーは「1234 5678 9012」です。",
+    "pii_categories": ["government_id"],
+    "sensitivity": "high",
+    "digit_candidates": [{ "string": "1234 5678 9012", "type": "my_number" }]
+  },
+  {
+    "id": "mynumber_unlabeled",
+    "text": "申請書の番号：「1234 5678 9012」を記入してください。",
+    "pii_categories": ["government_id"],
+    "sensitivity": "high",
+    "digit_candidates": [{ "string": "1234 5678 9012", "type": "my_number" }]
+  },
+  {
+    "id": "credit_card",
+    "text": "佐藤太郎さんのクレジットカード番号は「4111 1111 1111 1111」で、有効期限は2026年12月です。",
+    "pii_categories": ["financial_account", "person_name"],
+    "sensitivity": "high",
+    "digit_candidates": [{ "string": "4111 1111 1111 1111", "type": "credit_card" }]
+  },
+  {
+    "id": "bank_account",
+    "text": "田中美咲さんのみずほ銀行渋谷支店普通預金口座は「1234567」です。",
+    "pii_categories": ["financial_account", "person_name"],
+    "sensitivity": "high",
+    "digit_candidates": [{ "string": "1234567", "type": "bank_account" }]
+  },
+  {
+    "id": "passport",
+    "text": "佐藤健太の旅券番号は「TK1234567」です。",
+    "pii_categories": ["government_id", "person_name"],
+    "sensitivity": "high",
+    "digit_candidates": [{ "string": "1234567", "type": "driver_licence_or_passport" }]
+  },
+  {
+    "id": "driver_license",
+    "text": "鈴木由紀さんの運転免許証番号は「第 123456789012 号」です。",
+    "pii_categories": ["government_id", "person_name"],
+    "sensitivity": "high",
+    "digit_candidates": [{ "string": "123456789012", "type": "driver_licence_or_passport" }]
+  },
+  {
+    "id": "health_info",
+    "text": "佐々木信也さんは2型糖尿病で当院に通院中です。",
+    "pii_categories": ["health_info", "person_name"],
+    "sensitivity": "high",
+    "digit_candidates": []
+  },
+  {
+    "id": "biometric",
+    "text": "山田太郎さんの指紋データと顔認証テンプレートを当施設のセキュリティシステムに保存しました。",
+    "pii_categories": ["biometric", "person_name"],
+    "sensitivity": "high",
+    "digit_candidates": []
+  },
+  {
+    "id": "postal_address",
+    "text": "伊藤花子さんの住所は東京都渋谷区道玄坂1-2-3で、郵便番号は150-0043です。",
+    "pii_categories": ["postal_address", "person_name"],
+    "sensitivity": "low",
+    "digit_candidates": []
+  },
+  {
+    "id": "date_of_birth",
+    "text": "木村愛美さんの生年月日は1985年3月15日です。",
+    "pii_categories": ["date_of_birth", "person_name"],
+    "sensitivity": "low",
+    "digit_candidates": []
+  },
+  {
+    "id": "ip_address_personal",
+    "text": "佐野由美さんのホームネットワークのIPアドレスは192.168.1.100です。",
+    "pii_categories": ["ip_address_of_a_person", "person_name"],
+    "sensitivity": "low",
+    "digit_candidates": [{ "string": "192168", "type": "ip_address" }]
+  },
+  {
+    "id": "employment_info",
+    "text": "田辺健介さんはソフトウェア開発企業の営業部長として勤務しています。",
+    "pii_categories": ["employment_info", "person_name"],
+    "sensitivity": "low",
+    "digit_candidates": []
+  },
+  {
+    "id": "sns_handle",
+    "text": "中村彰子さんのTwitterハンドルは@nakamura_akako2020です。",
+    "pii_categories": ["sns_handle", "person_name"],
+    "sensitivity": "low",
+    "digit_candidates": []
+  },
+  {
+    "id": "religion",
+    "text": "高橋美香さんはカトリック教会に信仰を持つメンバーです。",
+    "pii_categories": ["race_or_religion", "person_name"],
+    "sensitivity": "low",
+    "digit_candidates": []
+  },
+  {
+    "id": "hard_negative_tracking",
+    "text": "配送物の追跡番号は「5678 9012 3456 7890」です。",
+    "pii_categories": [],
+    "sensitivity": "none",
+    "digit_candidates": [{ "string": "5678 9012 3456 7890", "type": "order_or_tracking_number" }]
+  },
+  {
+    "id": "hard_negative_serial",
+    "text": "製品シリアル番号：「8765432109876543」",
+    "pii_categories": [],
+    "sensitivity": "none",
+    "digit_candidates": [{ "string": "8765432109876543", "type": "product_serial" }]
+  },
+  {
+    "id": "hard_negative_meeting_date",
+    "text": "会議は2026年9月19日の15時から開催予定です。",
+    "pii_categories": [],
+    "sensitivity": "none",
+    "digit_candidates": []
+  },
+  {
+    "id": "hard_negative_server_config",
+    "text": "サーバーの設定で許可するIPアドレスは10.0.0.0/8です。",
+    "pii_categories": [],
+    "sensitivity": "none",
+    "digit_candidates": []
+  },
+  {
+    "id": "hard_negative_company_address",
+    "text": "弊社の本社所在地は東京都千代田区丸の内1-1-1です。",
+    "pii_categories": [],
+    "sensitivity": "none",
+    "digit_candidates": []
+  },
+  {
+    "id": "context_seminar_list",
+    "text": "〇〇セミナー参加者一覧：鈴木一郎、山本太郎、大田花子",
+    "pii_categories": ["person_name"],
+    "sensitivity": "low",
+    "digit_candidates": [],
+    "context_note": "Plain list of attendees - low sensitivity"
+  },
+  {
+    "id": "context_clinic_list",
+    "text": "〇〇クリニック 山本医師 受診者一覧：鈴木一郎、山本太郎、大田花子",
+    "pii_categories": ["health_info", "person_name"],
+    "sensitivity": "high",
+    "digit_candidates": [],
+    "context_note": "Clinic patient list - high sensitivity (reveals medical relationship)"
+  },
+  {
+    "id": "context_store_phone",
+    "text": "店舗の電話番号：03-1234-5678",
+    "pii_categories": [],
+    "sensitivity": "none",
+    "digit_candidates": []
+  },
+  {
+    "id": "context_personal_phone",
+    "text": "〇〇さんの携帯電話番号：090-1234-5678",
+    "pii_categories": ["email_or_phone", "person_name"],
+    "sensitivity": "low",
+    "digit_candidates": []
+  },
+  {
+    "id": "clean_text",
+    "text": "本日は快晴で、気温は25度です。外で読書をするのに最適な天気ですね。",
+    "pii_categories": [],
+    "sensitivity": "none",
+    "digit_candidates": []
+  }
+]

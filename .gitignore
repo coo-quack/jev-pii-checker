@@ -1,0 +1,26 @@
+# dependencies
+node_modules/
+
+# build output
+dist/
+
+# logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# editor
+*.swp
+*.swo
+.idea/
+.vscode/
+
+# worktrees
+.worktrees/
+
+# env
+*.local
+.env
+.env.*

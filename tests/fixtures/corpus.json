@@ -1,0 +1,274 @@
+{
+  "tests": [
+    {
+      "id": "t001",
+      "text": "佐藤健一郎さんに営業資料を送った。彼のメールアドレスはk.sato@example-trading.co.jpだ。",
+      "language": "ja",
+      "ground_truth": {
+        "person_names": [{ "text": "佐藤健一郎", "span": [0, 5], "type": "private_individual" }],
+        "emails": [
+          {
+            "text": "k.sato@example-trading.co.jp",
+            "span": [28, 56],
+            "type": "personal_identifier"
+          }
+        ],
+        "phone_numbers": [],
+        "company_names": []
+      }
+    },
+    {
+      "id": "t002",
+      "text": "Emily Carter joined our team yesterday. Her contact is emily.carter@techstartup-inc.com.",
+      "language": "en",
+      "ground_truth": {
+        "person_names": [
+          {
+            "text": "Emily Carter",
+            "span": [0, 12],
+            "type": "private_individual"
+          }
+        ],
+        "emails": [
+          {
+            "text": "emily.carter@techstartup-inc.com",
+            "span": [52, 84],
+            "type": "personal_identifier"
+          }
+        ],
+        "phone_numbers": [],
+        "company_names": []
+      }
+    },
+    {
+      "id": "t003",
+      "text": "Please call 03-1234-5678 during business hours, or reach 田中部長 at 090-9876-5432.",
+      "language": "ja",
+      "ground_truth": {
+        "person_names": [{ "text": "田中部長", "span": [37, 41], "type": "private_individual" }],
+        "emails": [],
+        "phone_numbers": [
+          {
+            "text": "03-1234-5678",
+            "span": [11, 23],
+            "type": "corporate_landline"
+          },
+          {
+            "text": "090-9876-5432",
+            "span": [56, 69],
+            "type": "personal_mobile"
+          }
+        ],
+        "company_names": []
+      }
+    },
+    {
+      "id": "t004",
+      "text": "The meeting was held at the conference room in Shibuya Ward, Tokyo.",
+      "language": "en",
+      "ground_truth": {
+        "person_names": [],
+        "emails": [],
+        "phone_numbers": [],
+        "company_names": []
+      },
+      "hard_negative_note": "place names only"
+    },
+    {
+      "id": "t005",
+      "text": "新京成電鉄が品川駅に新しいホームを建設する予定だ。",
+      "language": "ja",
+      "ground_truth": {
+        "person_names": [],
+        "emails": [],
+        "phone_numbers": [],
+        "company_names": [{ "text": "新京成電鉄", "span": [0, 5], "type": "organization" }]
+      },
+      "hard_negative_note": "company (railway) + place name (station)"
+    },
+    {
+      "id": "t006",
+      "text": "You can download the iPhone 15 Pro Max from Apple's website.",
+      "language": "en",
+      "ground_truth": {
+        "person_names": [],
+        "emails": [],
+        "phone_numbers": [],
+        "company_names": [{ "text": "Apple", "span": [42, 47], "type": "organization" }]
+      },
+      "hard_negative_note": "brand name (iPhone) + company (Apple)"
+    },
+    {
+      "id": "t007",
+      "text": "Natsume Soseki wrote Kokoro in the Meiji period.",
+      "language": "en",
+      "ground_truth": {
+        "person_names": [{ "text": "Natsume Soseki", "span": [0, 14], "type": "public_figure" }],
+        "emails": [],
+        "phone_numbers": [],
+        "company_names": []
+      },
+      "hard_negative_note": "historical/public figure"
+    },
+    {
+      "id": "t008",
+      "text": "The email noreply@system.example.com is for automated notifications only.",
+      "language": "en",
+      "ground_truth": {
+        "person_names": [],
+        "emails": [
+          {
+            "text": "noreply@system.example.com",
+            "span": [11, 37],
+            "type": "system_noreply"
+          }
+        ],
+        "phone_numbers": [],
+        "company_names": []
+      },
+      "hard_negative_note": "no-reply email - not private individual PII"
+    },
+    {
+      "id": "t009",
+      "text": "Customer service can be reached at 0120-123-4567, the support hotline.",
+      "language": "en",
+      "ground_truth": {
+        "person_names": [],
+        "emails": [],
+        "phone_numbers": [
+          {
+            "text": "0120-123-4567",
+            "span": [34, 47],
+            "type": "corporate_hotline"
+          }
+        ],
+        "company_names": []
+      },
+      "hard_negative_note": "toll-free corporate hotline - not private individual PII"
+    },
+    {
+      "id": "t010",
+      "text": "Order #2024-0912-3345 is ready for shipment. Please track it.",
+      "language": "en",
+      "ground_truth": {
+        "person_names": [],
+        "emails": [],
+        "phone_numbers": [],
+        "company_names": []
+      },
+      "hard_negative_note": "order ID looks like phone number"
+    },
+    {
+      "id": "t011",
+      "text": "Yamada Taro submitted the report today. His company is Yamada Electronics Inc.",
+      "language": "en",
+      "ground_truth": {
+        "person_names": [
+          {
+            "text": "Yamada Taro",
+            "span": [0, 11],
+            "type": "private_individual"
+          }
+        ],
+        "emails": [],
+        "phone_numbers": [],
+        "company_names": [
+          {
+            "text": "Yamada Electronics Inc.",
+            "span": [55, 77],
+            "type": "organization"
+          }
+        ]
+      }
+    },
+    {
+      "id": "t012",
+      "text": "株式会社サンプルジャパンと契約を結んだ。担当者は佐藤美咲です。",
+      "language": "ja",
+      "ground_truth": {
+        "person_names": [{ "text": "佐藤美咲", "span": [26, 30], "type": "private_individual" }],
+        "emails": [],
+        "phone_numbers": [],
+        "company_names": [
+          {
+            "text": "株式会社サンプルジャパン",
+            "span": [0, 11],
+            "type": "organization"
+          }
+        ]
+      }
+    },
+    {
+      "id": "t013",
+      "text": "Dr. Smith and Ms. Johnson will attend the conference next week.",
+      "language": "en",
+      "ground_truth": {
+        "person_names": [
+          { "text": "Dr. Smith", "span": [0, 9], "type": "private_individual" },
+          {
+            "text": "Ms. Johnson",
+            "span": [14, 25],
+            "type": "private_individual"
+          }
+        ],
+        "emails": [],
+        "phone_numbers": [],
+        "company_names": []
+      }
+    },
+    {
+      "id": "t014",
+      "text": "会議の出席者は山田太郎、鈴木花子、および北京のBaidu社の李副社長である。",
+      "language": "ja",
+      "ground_truth": {
+        "person_names": [
+          { "text": "山田太郎", "span": [6, 10], "type": "private_individual" },
+          {
+            "text": "鈴木花子",
+            "span": [11, 15],
+            "type": "private_individual"
+          },
+          { "text": "李副社長", "span": [27, 31], "type": "private_individual" }
+        ],
+        "emails": [],
+        "phone_numbers": [],
+        "company_names": [{ "text": "Baidu", "span": [20, 25], "type": "organization" }]
+      }
+    },
+    {
+      "id": "t015",
+      "text": "平素はお世話になっております。株式会社アスターシステム営業部の田中美咲と申します。先日は弊社製品についてお問い合わせいただき、ありがとうございました。ご不明な点がございましたら、いつでもお気軽にお電話ください。携帯電話090-5432-1098、社内代表番号03-9876-5432です。また、こちらのメールアドレス tanaka.misaki@aster-sys.co.jp からもお気軽にお問い合わせください。渋谷のオフィスもしくは品川のショールームまでご来社ください。iPhone15やiPadをご活用いただけます。ご不明な点や追加のご要望がございましたら、弊社東京支店までお問い合わせください。よろしくお願いいたします。",
+      "language": "ja",
+      "ground_truth": {
+        "person_names": [{ "text": "田中美咲", "span": [24, 28], "type": "private_individual" }],
+        "emails": [
+          {
+            "text": "tanaka.misaki@aster-sys.co.jp",
+            "span": [137, 167],
+            "type": "personal_identifier"
+          }
+        ],
+        "phone_numbers": [
+          {
+            "text": "090-5432-1098",
+            "span": [98, 111],
+            "type": "personal_mobile"
+          },
+          {
+            "text": "03-9876-5432",
+            "span": [119, 131],
+            "type": "corporate_main_line"
+          }
+        ],
+        "company_names": [
+          {
+            "text": "株式会社アスターシステム",
+            "span": [10, 20],
+            "type": "organization"
+          }
+        ]
+      },
+      "hard_negative_note": "long business email with mixed PII and distractors (place names, product names, dates)"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "indentation": {
+    "type": "spaces",
+    "size": 2
+  },
+  "quotes": "double",
+  "trailingCommas": "all",
+  "ignore": ["dist/"]
+}

@@ -85,3 +85,4 @@ jobs:
             gh release create "$VERSION" \
               --title "$VERSION" \
               --notes-file /tmp/release-notes.md
+          fi

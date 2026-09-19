@@ -2,5 +2,6 @@
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "project": ["src/**/*.ts", "tests/**/*.ts"],
   "ignoreDependencies": ["bun-types"],
-  "ignore": ["src/gate.ts", "src/judge.ts", "src/locate.ts", "src/report.ts"]
+  "ignore": ["src/gate.ts", "src/judge.ts", "src/locate.ts", "src/report.ts"],
+  "entry": ["docs/.vitepress/config.ts", "docs/.vitepress/theme/index.ts"]
 }

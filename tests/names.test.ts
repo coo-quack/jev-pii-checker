@@ -44,6 +44,51 @@ describe("Name candidate generation", () => {
     const candTexts = candidates.map((c) => c.text);
     expect(candTexts.some((t) => t.includes("Emily") || t.includes("Carter"))).toBe(true);
   });
+
+  test("merges Latin multi-word names separated by space", () => {
+    const text = "Payment received from Emily Carter, card 4111.";
+    const candidates = generateNameCandidates(text);
+    const candTexts = candidates.map((c) => c.text);
+    expect(candTexts).toContain("Emily Carter");
+  });
+
+  test("merges three-word Latin names", () => {
+    const text = "John Paul Smith is here";
+    const candidates = generateNameCandidates(text);
+    const candTexts = candidates.map((c) => c.text);
+    expect(
+      candTexts.some((t) => t.includes("John") && t.includes("Paul") && t.includes("Smith")),
+    ).toBe(true);
+  });
+
+  test("does not merge Latin names across punctuation", () => {
+    const text = "Emily, Carter wrote something";
+    const candidates = generateNameCandidates(text);
+    const candTexts = candidates.map((c) => c.text);
+    expect(candTexts).not.toContain("Emily Carter");
+  });
+
+  test("does not merge across lowercase word", () => {
+    const text = "The emily Carter problem";
+    const candidates = generateNameCandidates(text);
+    const candTexts = candidates.map((c) => c.text);
+    expect(candTexts).not.toContain("emily Carter");
+  });
+
+  test("merges Japanese multi-word names unchanged", () => {
+    const text = "佐藤太郎と田中花子が会った";
+    const candidates = generateNameCandidates(text);
+    const candTexts = candidates.map((c) => c.text);
+    expect(candTexts).toContain("佐藤太郎");
+    expect(candTexts).toContain("田中花子");
+  });
+
+  test("Natsume Soseki as single candidate", () => {
+    const text = "Natsume Soseki wrote Kokoro";
+    const candidates = generateNameCandidates(text);
+    const candTexts = candidates.map((c) => c.text);
+    expect(candTexts).toContain("Natsume Soseki");
+  });
 });
 
 describe("Title suffix attachment", () => {

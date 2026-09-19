@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.1.1 (2026-09-20)
+
+### Fixes
+
+- **Probability accuracy**: Person name findings now report the real maximum probability from judged candidates instead of hard-coded 0.8
+- **Multi-word Latin names**: Sequences of 2–3 consecutive capitalized Latin words separated by single spaces (e.g., "Emily Carter", "Natsume Soseki") are now merged as single candidates
+- **Number value formatting**: Number findings preserve original formatting (spaces and hyphens) instead of normalized digits
+
 ## v0.1.0 (2026-09-19)
 
 ### Features

@@ -40,6 +40,9 @@ features:
     details: 0 for clean, 1 for error, 2 when severity meets threshold. Easy shell integration.
 ---
 
+> [!WARNING]
+> **The scanned text is sent to TypeSafe's Jev API.** Detection happens on their servers, so this tool is not a local-only guard: everything you scan leaves your machine. Use it only on data you are allowed to hand to a third party, such as text you were going to send to an LLM anyway, and check TypeSafe's data-retention terms first. For a guard that never sends anything, see [sensitive-canary](https://github.com/coo-quack/sensitive-canary). Details on the [Security](/security) page.
+
 ## Why jev-pii-checker?
 
 Regex alone misses context and generates noise. Jev alone costs per API call on every character. **jev-pii-checker layered them**: gate screens first, then regex finds candidates, then Jev judges only what matters.

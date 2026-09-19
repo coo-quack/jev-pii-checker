@@ -115,9 +115,11 @@ jev-pii-checker file.txt
 
 - Cannot distinguish public figures (e.g., "Natsume Soseki" may be flagged as a person name)
 - Cannot verify checksums (e.g., credit card Luhn, passport format)
-- Japanese names with titles may be split incorrectly (e.g., "佐藤 部長" → two spans instead of one)
 - Cannot detect PII embedded in code (JSON, SQL, regex patterns)
 - Cannot identify company/organization names (out of scope)
+- Sensitivity for code/config snippets can be over-estimated (a `user_id` variable read as personal data)
+- A lone toll-free number can still lift sensitivity to low
+- Religion tied to a named person is scored `high` by the model even though IBM's table lists it as non-sensitive (Japanese law treats it as 要配慮個人情報, so this is kept)
 
 ## Development
 

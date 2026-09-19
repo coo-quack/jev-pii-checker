@@ -22,14 +22,18 @@ Digit strings are extracted and classified by Jev, but checksums are not validat
 
 This means **synthetic or invalid numbers may be flagged as PII**. Use the probability score to judge confidence.
 
-## Japanese Names with Titles May Be Split
+## Sensitivity Can Be Over-Estimated for Code Snippets
 
-The `Intl.Segmenter` may split or merge incorrectly:
+When scanning code or configuration snippets, variables or fields named like personal attributes (e.g., `user_id`, `person_name`, `phone_number`) may be flagged as containing PII even though they are just identifiers:
 
-- "佐藤 部長" (Satoh, section chief) → may become two spans instead of one
-- "山田太郎様" (Yamada Taro, honorific) → may split or merge unpredictably
+```javascript
+const person_name = "template";
+const user_id = 123456;
+```
 
-**Workaround**: Review findings. Use `--span-threshold` to increase strictness. Or use `--no-spans` and rely only on regex and financial IDs.
+The tool sees these strings and reports sensitivity accordingly. Review the actual values to confirm.
+
+**Workaround**: Use `--no-spans` to skip name detection and rely on regex-found emails/phones only.
 
 ## Cannot Detect PII in Code
 
@@ -79,6 +83,16 @@ The tool detects PII **in isolation**. It does not:
 - No check if John actually works there
 - No distinction between official and casual mention
 - No verification against a company roster
+
+## Toll-Free Numbers Can Lift Sensitivity
+
+A lone toll-free number (0120, 0800, 0570, 1-800 prefix) in a document is flagged `pii: false` by rule, but if it appears with a person's name, the document may still be classified as `high` sensitivity because the named person + any contact information is treated as sensitive.
+
+**Context matters**: "Call 0120-123-456" alone has low sensitivity; "Call John at 0120-123-456" has higher sensitivity.
+
+## Religion Linked to Named Person Is Treated as High Sensitivity
+
+When a person name appears alongside religious affiliation, the model scores this as `high` sensitivity even though IBM's reference taxonomy lists religion as non-sensitive. This is intentional: under Japanese law (個人情報保護法), 要配慮個人情報 (sensitive personal information requiring care) includes religion when linked to a named person.
 
 ## Text Sent to TypeSafe API
 

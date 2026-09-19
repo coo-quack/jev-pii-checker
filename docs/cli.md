@@ -185,8 +185,18 @@ Each finding includes:
 - **value**: The detected text (masked by default)
 - **start** / **end**: Character offsets in the original text
 - **probability**: Jev confidence (0.0–1.0)
-- **pii**: Whether it was flagged as PII (numbers may be false positives)
-- **detail** (optional): Extra info for numbers (e.g., `number_type: "credit_card"`)
+- **pii**: Whether it was flagged as PII; semantics depend on type:
+  - **email/phone**: `false` if generic mailbox (noreply, info, support, etc.) or toll-free/navi-dial (0120, 0800, 0570, 1-800); otherwise `true` if personal-contact probability ≥ 0.2, else `false`
+  - **number**: `true` for sensitive types (my_number, credit_card, bank_account, phone, driver_licence_or_passport); `false` for non-sensitive (order_or_tracking_number, product_serial, date, other)
+  - **person_name**: Always `true`
+- **detail** (optional): Type-specific metadata:
+  - **person_name**: `{ honorific?: string, title?: string, scores?: { person: number, name: number } }`
+    - `honorific`: Trailing honorific (e.g., "さん", "Mr.", "Dr")
+    - `title`: Role or title prefix that was stripped during candidate generation (e.g., "部長" before a name)
+    - `scores`: Two-stage judgment scores (person: does it refer to a person; name: is it a full or part of a name)
+  - **number**: `{ number_type: string, probabilities?: Record<string, number> }`
+    - `number_type`: Classification (my_number, credit_card, bank_account, phone, driver_licence_or_passport, order_or_tracking_number, product_serial, date, other)
+    - `probabilities`: Full probability distribution from the judgment
 
 ## Examples
 
@@ -219,3 +229,43 @@ jev-pii-checker names.txt --span-threshold 0.95
 ```bash
 jev-pii-checker file.txt --no-spans
 ```
+
+## Evaluation
+
+### `bun run eval [--json path]`
+
+Run accuracy evaluation over the bundled test corpus (`tests/fixtures/eval_corpus.json`).
+
+**Requirements**:
+
+- `TYPESAFE_API_KEY` environment variable must be set
+- Uses the live TypeSafe Jev API (calls may incur costs)
+
+**Output**:
+
+- Human-readable metrics: precision, recall, F1 per finding type and language
+- Sensitivity classification accuracy
+- Failure report with false positives and false negatives
+
+**Options**:
+
+- `--json path`: Write detailed JSON results to the specified file
+
+**Examples**:
+
+```bash
+export TYPESAFE_API_KEY="..."
+bun run eval
+```
+
+```bash
+bun run eval --json results.json
+```
+
+**Results on the bundled corpus**:
+
+- **person_name**: P 97.7%, R 100%
+- **email**: 100%
+- **phone**: 100%
+- **number**: 100%
+- **Sensitivity**: 88% accuracy

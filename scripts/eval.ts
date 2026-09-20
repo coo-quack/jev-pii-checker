@@ -7,6 +7,8 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { splitIntoChunks, aggregateSensitivityLevel } from "../src/chunk.js";
 import { runGate } from "../src/gate.js";
+import { applySensitivityPolicy } from "../src/policy.js";
+import { aggregateCategoryProbabilities } from "../src/chunk.js";
 import { createJevJudge, type Judge } from "../src/judge.js";
 import { locatePII, type PIIFinding } from "../src/locate.js";
 import type { SensitivityLevel } from "../src/gate.js";
@@ -186,6 +188,7 @@ async function evaluateEntry(
   let allPredictions: PIIFinding[] = [];
   let totalInputTokens = 0;
   let requestCount = 0;
+  const chunkCategories: Array<Record<string, number>> = [];
   const chunkSensitivities: Array<{
     level: SensitivityLevel;
     score: number;
@@ -199,6 +202,7 @@ async function evaluateEntry(
 
     // Collect sensitivity from gate
     chunkSensitivities.push(gateResult.sensitivity);
+    chunkCategories.push(gateResult.categories);
 
     const personNameGateProb = gateResult.categories.person_name;
 
@@ -240,6 +244,15 @@ async function evaluateEntry(
     sensitivityLevels.length > 0
       ? (aggregateSensitivityLevel(sensitivityLevels) as SensitivityLevel)
       : "none";
+  // Same policy as the CLI, so the harness measures what users get.
+  const policyResult = applySensitivityPolicy({
+    level: sensitivityPrediction,
+    categories: aggregateCategoryProbabilities(chunkCategories),
+    findings: allPredictions,
+    threshold,
+    spansComputed: true,
+  });
+  const finalSensitivity = policyResult.level;
 
   return {
     result: {
@@ -247,7 +260,7 @@ async function evaluateEntry(
       text: entry.text.substring(0, 100),
       predictions: allPredictions,
       expected: entry.expected.findings,
-      sensitivityPrediction,
+      sensitivityPrediction: finalSensitivity,
       sensitivityExpected: entry.expected.sensitivity,
       matches,
     },
@@ -272,9 +285,13 @@ async function main() {
     process.exit(1);
   }
 
-  const corpusData = JSON.parse(
-    readFileSync(new URL("../tests/fixtures/eval_corpus.json", import.meta.url), "utf-8"),
-  ) as EvalCorpus;
+  // --corpus PATH selects another fixture (e.g. tests/fixtures/eval_holdout.json).
+  const corpusArgIdx = process.argv.indexOf("--corpus");
+  const corpusPath =
+    corpusArgIdx >= 0 && process.argv[corpusArgIdx + 1]
+      ? new URL(process.argv[corpusArgIdx + 1], `file://${process.cwd()}/`)
+      : new URL("../tests/fixtures/eval_corpus.json", import.meta.url);
+  const corpusData = JSON.parse(readFileSync(corpusPath, "utf-8")) as EvalCorpus;
 
   const judge = createJevJudge(process.env.TYPESAFE_API_KEY);
 

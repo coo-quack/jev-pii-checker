@@ -1,5 +1,10 @@
 import { describe, expect, test } from "vitest";
-import { extractEmails, extractPhones, extractDigitStrings } from "../src/extract/regex.js";
+import {
+  extractAllRegex,
+  extractDigitStrings,
+  extractEmails,
+  extractPhones,
+} from "../src/extract/regex.js";
 
 describe("Email Extraction", () => {
   test("should extract simple personal emails", () => {
@@ -176,5 +181,22 @@ describe("Digit String Extraction", () => {
     const text = "Order No. 123456789";
     const matches = extractDigitStrings(text);
     expect(matches.length).toBe(0);
+  });
+});
+
+describe("regex additions: SSN, 1-8xx, alphanumeric IDs", () => {
+  test("finds a US social security number as a number candidate", () => {
+    const m = extractAllRegex("SSN: 567-89-1234");
+    expect(m.map((x) => [x.kind, x.text])).toEqual([["number", "567-89-1234"]]);
+  });
+
+  test("keeps the 1- prefix on a North American number", () => {
+    const m = extractAllRegex("Phone: 1-888-234-5678");
+    expect(m[0]?.text).toBe("1-888-234-5678");
+  });
+
+  test("does not cut a 10-digit run out of an alphanumeric ID", () => {
+    const m = extractAllRegex("Tracking ID: 1234567890abcd is ready. Order number: 9876543210.");
+    expect(m.map((x) => x.text)).toEqual(["9876543210"]);
   });
 });

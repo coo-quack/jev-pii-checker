@@ -1,5 +1,20 @@
 # Changelog
 
+## v0.3.0 (2026-09-20)
+
+### Features
+
+- **Sensitivity policy**: Two code-side policy rules now apply on top of the model's rubric answer. Escalation to `high` when a named person co-occurs with a special category (health, biometric, government ID, financial account, race or religion) or when a personal government/financial number is found. Floor to `none` when no category reaches threshold and no finding is personal (filters noise like lone toll-free numbers, unlabelled digit strings, code snippets).
+- **Argmax sensitivity**: Sensitivity level is now the most probable rubric step (argmax over probabilities), not the rounded expected value. A distribution {none: 0.63, low: 0.12, high: 0.25} with expected value 0.62 (rounds to "low") now correctly returns "none" as the most likely answer.
+- **Name candidates improved**: Political/military/legal/clerical titles (Governor, Senator, Mayor, Judge, …) and capitalized form labels (Name, Email, Phone, Subject, …) are never candidates. Initials merge with surname (T. Anderson) and are never candidates alone. Katakana names joined by ＝ or ・ (マリー＝ルイーズ, イヴ・パトリック) are single candidates. Hangul names (김민수) are candidates.
+- **Number type `national_id`**: US social security numbers (3-2-4 format) are now typed as `national_id`. A digit string the model types as a phone is reported with the model's choice in `detail.number_type`. Digit runs inside alphanumeric IDs are ignored. North American numbers keep a `1-` prefix; 1-8xx toll-free prefixes are `pii: false` by rule.
+- **Evaluation corpus**: New `bun run eval --corpus PATH` flag for held-out corpus evaluation. Results on a fresh 40-entry held-out corpus: person_name, email, phone, number all P/R 100%; sensitivity 38/40 (95%, two edge cases: a Wikipedia paragraph about a deceased scientist scored low instead of none; a confidential performance review with termination recommendation sits at the model's 0.47/0.53 low/high boundary). Bundled 60-entry corpus: all 100% on findings, sensitivity 60/60. (Held-out numbers measured after fixes were chosen from a first run with 85% name F1, 87.5% sensitivity, so a fresh corpus is the honest test.)
+- **Report structure**: JSON now carries `sensitivity.model_level` (the model's answer before policy) and `sensitivity.reasons` (why the policy changed it, if at all). Human output shows the model level and reason in parentheses when the policy changed the level.
+
+### Breaking Changes
+
+- Finding JSON now includes `sensitivity.model_level` and `sensitivity.reasons` in the report structure.
+
 ## v0.2.0 (2026-09-20)
 
 ### Features

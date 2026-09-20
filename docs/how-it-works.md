@@ -18,6 +18,8 @@ The gate also produces a **sensitivity score** (none / low / high) using the IBM
 - **low**: Contact or basic details (name, phone, email, address, birthday, job) but low direct harm risk
 - **high**: Government ID, financial account, health, biometric information, or sensitive fact lists
 
+The sensitivity level returned by the gate is computed as the most probable rubric step (argmax over the probability distribution), not as a rounded expected value. This ensures that {none: 0.63, low: 0.12, high: 0.25} with expected value 0.62 returns "none" as the most likely answer, rather than rounding to "low".
+
 **Purpose**: Screen the text before expensive detailed extraction. If the gate says "no person names," don't bother extracting names.
 
 **Cost**: ~500 tokens per chunk, answered all at once.
@@ -64,9 +66,16 @@ Both thresholds must pass. Overlapping candidates are merged and assembled into 
 **Filtering**:
 
 - Names inside emails, URLs, or phone numbers are filtered out
-- Role words alone (patient, rabbi, doctor, manager, etc.) are never candidates
+- Role words and titles alone are never candidates: political/military/legal/clerical titles (Governor, Senator, Mayor, Judge, etc.), and capitalized form labels (Name, Email, Phone, Subject, etc.)
 - Lowercase Latin words are never candidates
 - Japanese particles and title suffixes are stripped during candidate generation
+- Initials are never candidates alone; they merge with the surname (T. Anderson is one candidate, but T alone is not)
+
+**Special cases**:
+
+- Katakana names joined by ＝ or ・ (マリー＝ルイーズ, イヴ・パトリック) are kept as single candidates
+- Hangul names (김민수) are candidates alongside Japanese and Latin names
+- Hyphenated names (Al-Rashid, Jean-Pierre) are kept whole as single candidates
 
 **Candidate cap**: Up to 600 candidates per chunk (raised from 200); late candidates in long chunks are no longer silently dropped.
 
@@ -87,6 +96,18 @@ Text longer than `--max-chars` (default 4000 bytes) is split at paragraph or sen
 
 **Per-document aggregation**: Results are merged (max sensitivity, max per-category probability).
 
+## Sensitivity Policy
+
+After the gate produces its sensitivity level and category probabilities, a code-side policy applies two rules:
+
+**Escalation to high**: If a named person co-occurs with a special category (health_info, biometric, government_id, financial_account, or race_or_religion) at threshold, or if a personal government or financial number is found (my_number, credit_card, bank_account, driver_licence_or_passport, or national_id), the sensitivity is escalated to `high` even if the model returned `low`.
+
+**Floor to none**: If no category reaches the threshold and no finding is marked as PII (when spans are computed), the sensitivity is floored to `none`. This filters noise: a lone toll-free number, an unlabelled digit string, or a code snippet with variable names are all rewritten to `none`.
+
+These rules are policy, not judgment: they are necessary because the model is calibrated on literal text, whereas Japanese law (個人情報保護法) treats certain combinations as 要配慮個人情報 (sensitive personal information requiring care).
+
+The JSON report carries both `model_level` (the model's answer before the policy) and `reasons` (why the policy changed it, if at all). The human output shows the model level and reason in parentheses when the policy changed the level.
+
 ## Name Extraction
 
 Japanese names and English names are both extracted via `Intl.Segmenter('ja')` with the same algorithm:
@@ -96,9 +117,15 @@ Japanese names and English names are both extracted via `Intl.Segmenter('ja')` w
 3. **Span assembly**: Overlapping candidates with high probability are merged into non-overlapping spans
 4. **Title attachment**: Trailing honorifics (さん, 様, Dr., Mr., etc.) are detected and reported separately; role prefixes (部長, Rabbi, Patient, etc.) are also stripped and reported
 
-**Improvements in this version**:
+**Improvements in recent versions**:
 
-- Japanese surnames with titles (田中部長, 千葉さん) are now correctly found as single spans
+- Sensitivity policy escalates to high when a named person co-occurs with health, biometric, government ID, financial account, or race/religion data, or when a personal government/financial number is found
+- Sensitivity is floored to none when no category reaches threshold and no finding is PII, filtering noise (toll-free numbers, code snippets)
+- Argmax sensitivity: the most probable rubric step, not rounded expected value
+- Political/military/legal/clerical titles and capitalized form labels (Name, Email, Phone, Subject, etc.) are never candidates
+- Initials merge with surname (T. Anderson) and are never candidates alone
+- Katakana names joined by ＝ or ・ and Hangul names are now handled correctly
+- Japanese surnames with titles (田中部長, 千葉さん) are found as single spans
 - Place names (千葉県) are no longer confused with person names
 - Title words are never included in the span value itself
 

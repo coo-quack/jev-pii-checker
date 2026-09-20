@@ -54,8 +54,55 @@ function isKanjiKatakanaOrLatin(char: string): boolean {
   if (code >= 0x4e00 && code <= 0x9fff) return true;
   if (code >= 0x30a0 && code <= 0x30ff) return true;
   if (code >= 0xa000 && code <= 0xa4cf) return true;
+  // Hangul syllables and jamo (김민수 in Japanese text).
+  if (code >= 0xac00 && code <= 0xd7a3) return true;
+  if (code >= 0x1100 && code <= 0x11ff) return true;
+  if (code >= 0x3130 && code <= 0x318f) return true;
   if (/[A-Za-z]/.test(char)) return true;
   return false;
+}
+
+const KATAKANA_CONNECTORS = new Set(["・", "＝", "゠", "="]);
+
+type Seg = { segment: string; index: number };
+
+/**
+ * The segmenter splits マリー＝ルイーズ and イヴ・パトリック at the connector and
+ * "T. Anderson" into "T", ".", "Anderson". Re-join those so a foreign name in
+ * katakana and an initial are single segments.
+ */
+function joinNameConnectors(input: Seg[]): Seg[] {
+  const out: Seg[] = [];
+  const isKatakanaWord = (t: string) => /^[\u30a0-\u30ff]+$/.test(t);
+  for (let i = 0; i < input.length; i++) {
+    const cur = input[i];
+    let text = cur.segment;
+    let end = cur.index + text.length;
+    while (
+      isKatakanaWord(text.split(/[・＝゠=]/).pop() ?? "") &&
+      i + 2 < input.length &&
+      KATAKANA_CONNECTORS.has(input[i + 1].segment) &&
+      input[i + 1].index === end &&
+      isKatakanaWord(input[i + 2].segment) &&
+      input[i + 2].index === end + 1
+    ) {
+      text += input[i + 1].segment + input[i + 2].segment;
+      end = input[i + 2].index + input[i + 2].segment.length;
+      i += 2;
+    }
+    if (
+      /^[A-Z]$/.test(text) &&
+      i + 1 < input.length &&
+      input[i + 1].segment === "." &&
+      input[i + 1].index === end
+    ) {
+      text += ".";
+      end += 1;
+      i += 1;
+    }
+    out.push({ segment: text, index: cur.index });
+  }
+  return out;
 }
 
 function isHiragana(char: string): boolean {
@@ -94,6 +141,68 @@ function stripPossessive(text: string): { text: string; end: number } {
 
 // English title/role words to exclude from the start of candidates
 const ENGLISH_TITLES = new Set([
+  "governor",
+  "senator",
+  "mayor",
+  "minister",
+  "ambassador",
+  "general",
+  "colonel",
+  "major",
+  "lieutenant",
+  "sergeant",
+  "judge",
+  "justice",
+  "chief",
+  "chancellor",
+  "secretary",
+  "representative",
+  "congressman",
+  "congresswoman",
+  "councillor",
+  "councilman",
+  "coach",
+  "nurse",
+  "attorney",
+  "reverend",
+  "father",
+  "sister",
+  "brother",
+  "sheriff",
+  "detective",
+  "inspector",
+  "king",
+  "queen",
+  "prince",
+  "princess",
+  "emperor",
+  "duke",
+  "duchess",
+  "name",
+  "email",
+  "phone",
+  "address",
+  "subject",
+  "date",
+  "employee",
+  "contact",
+  "tel",
+  "fax",
+  "note",
+  "company",
+  "department",
+  "position",
+  "status",
+  "record",
+  "rating",
+  "issues",
+  "reviewer",
+  "author",
+  "sender",
+  "recipient",
+  "from",
+  "to",
+  "cc",
   "patient",
   "rabbi",
   "imam",
@@ -136,7 +245,7 @@ export function generateNameCandidatesWithTitles(
   maxCandidates = 600,
 ): NameCandidatesResult {
   const segmenter = new Intl.Segmenter("ja", { granularity: "word" });
-  const segments = Array.from(segmenter.segment(text));
+  const segments = joinNameConnectors(Array.from(segmenter.segment(text)));
 
   const candidates = new Map<string, NameCandidate>();
   const titleMap = new Map<string, string>();
@@ -287,13 +396,16 @@ export function generateNameCandidatesWithTitles(
     tokens.push({ text: joined, start: seg.index, end: joinedEnd, space: false });
   }
 
+  const isInitial = (t: string) => /^[A-Z]\.$/.test(t);
   const isNameWord = (tok: Token | undefined): tok is Token =>
     !!tok &&
     !tok.space &&
-    isCapitalizedLatin(tok.text) &&
+    (isInitial(tok.text) || (isCapitalizedLatin(tok.text) && tok.text.length > 1)) &&
     !ENGLISH_TITLES.has(tok.text.toLowerCase());
 
   const addLatin = (first: Token, last: Token, words: Token[], titleBefore?: Token) => {
+    // An initial is only a name together with a full word (T. Anderson).
+    if (words.every((w) => isInitial(w.text))) return;
     let textOut = words.map((w) => w.text).join(" ");
     let endPos = last.end;
     const stripped = stripPossessive(textOut);
@@ -323,6 +435,16 @@ export function generateNameCandidatesWithTitles(
       if (tokens[i + 3]?.space && isNameWord(w3)) {
         addLatin(w1, w3, [w1, w2, w3], titleBefore);
       }
+    }
+  }
+
+  // Single Latin letters and lone initials are noise. (A colon after a
+  // candidate does not make it a label: "Jennifer Lopez: sexual harassment"
+  // and chat lines like "高橋由紀: こんにちは" are mentions; the field-label
+  // words themselves are excluded by ENGLISH_TITLES.)
+  for (const [key, cand] of candidates) {
+    if (/^[A-Z]\.?$/.test(cand.text)) {
+      candidates.delete(key);
     }
   }
 

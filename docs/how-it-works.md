@@ -100,7 +100,7 @@ Text longer than `--max-chars` (default 4000 bytes) is split at paragraph or sen
 
 After the gate produces its sensitivity level and category probabilities, a code-side policy applies two rules:
 
-**Escalation to high**: If a named person co-occurs with a special category (health_info, biometric, government_id, financial_account, or race_or_religion) at threshold, or if a personal government or financial number is found (my_number, credit_card, bank_account, driver_licence_or_passport, or national_id), the sensitivity is escalated to `high` even if the model returned `low`.
+**Escalation to high**: If a named person co-occurs with a special category (health_info, biometric, government_id, financial_account, or race_or_religion, hr_or_criminal_record) at threshold, or if a personal government or financial number is found (my_number, credit_card, bank_account, driver_licence_or_passport, or national_id), the sensitivity is escalated to `high` even if the model returned `low`.
 
 **Floor to none**: If no category reaches the threshold and no finding is marked as PII (when spans are computed), the sensitivity is floored to `none`. This filters noise: a lone toll-free number, an unlabelled digit string, or a code snippet with variable names are all rewritten to `none`.
 
@@ -167,6 +167,6 @@ Names are the most expensive layer: 1 token per candidate. Regex extraction cost
 
 ## Next Steps
 
-- [Categories & Sensitivity](./categories) — Full definitions of the 12 categories
+- [Categories & Sensitivity](./categories) — Full definitions of the 13 categories
 - [Limitations](./limitations) — What jev-pii-checker cannot do
 - [CLI Reference](./cli) — All flags and configuration

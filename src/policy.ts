@@ -36,12 +36,16 @@ export interface PolicyResult {
   reasons: string[];
 }
 
+// Disciplinary, evaluation, dismissal, complaint and criminal records count
+// as special: they reveal an adverse fact about a named person even when the
+// rubric answer sits near the low/high boundary.
 const SPECIAL_CATEGORIES = [
   "health_info",
   "biometric",
   "government_id",
   "financial_account",
   "race_or_religion",
+  "hr_or_criminal_record",
 ];
 
 const SPECIAL_NUMBER_TYPES = new Set([

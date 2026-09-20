@@ -16,7 +16,8 @@ export type Category =
   | "ip_address_of_a_person"
   | "sns_handle"
   | "employment_info"
-  | "race_or_religion";
+  | "race_or_religion"
+  | "hr_or_criminal_record";
 
 export type SensitivityLevel = "none" | "low" | "high";
 
@@ -75,6 +76,10 @@ export async function runGate(judge: Judge, text: string): Promise<GateResult> {
       instructions:
         "Does the text contain information about the race, ethnicity, or religious beliefs of a specific person?",
     },
+    hr_or_criminal_record: {
+      instructions:
+        "Does the text contain a formal record about an identifiable person of a disciplinary action, an official performance rating or review, a dismissal or termination decision, a harassment or misconduct complaint, or a criminal or arrest record? Casual praise or criticism in conversation does not count.",
+    },
     sensitivity: {
       instructions:
         "If this text leaked, how sensitive is the personal information contained in it?",
@@ -101,6 +106,7 @@ export async function runGate(judge: Judge, text: string): Promise<GateResult> {
     sns_handle: 0,
     employment_info: 0,
     race_or_religion: 0,
+    hr_or_criminal_record: 0,
   };
 
   const categoryKeys: Category[] = [
@@ -116,6 +122,7 @@ export async function runGate(judge: Judge, text: string): Promise<GateResult> {
     "sns_handle",
     "employment_info",
     "race_or_religion",
+    "hr_or_criminal_record",
   ];
 
   for (const key of categoryKeys) {

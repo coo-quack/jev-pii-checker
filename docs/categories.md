@@ -104,6 +104,10 @@ Context matters: "Buddhism" alone is a religion; "he practices Buddhism" with a 
 
 The gate also produces a sensitivity score using the **IBM taxonomy**. This reflects the harm potential if the PII were leaked.
 
+### hr_or_criminal_record
+
+A disciplinary action, performance evaluation, dismissal or termination decision, harassment or misconduct complaint, or criminal or arrest record concerning an identifiable person. Employment facts alone (workplace, title, a list of staff) belong to `employment_info`, not here. Together with a named person this category escalates the sensitivity to `high` (see the policy below): such records reveal an adverse fact about the person even when the model's own rubric answer sits near the low/high boundary.
+
 ### none
 
 **No information about an identifiable individual.**
@@ -170,6 +174,7 @@ The code-side sensitivity policy treats the following as **special categories** 
 - **government_id**: Government-issued identifiers (マイナンバー, passport, driver's license, etc.)
 - **financial_account**: Credit card, bank account, financial information
 - **race_or_religion**: Race, ethnicity, or religious beliefs
+- **hr_or_criminal_record**: Disciplinary, evaluation, dismissal, complaint or criminal record
 
 Similarly, these number types trigger escalation on their own:
 

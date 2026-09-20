@@ -13,7 +13,7 @@ CLI for scanning text and files for PII using TypeSafe's Jev model, regex patter
 
 **Three-layer detection:**
 
-1. **Gate** — 12 PII category Nouls (person name, email/phone, postal address, date of birth, government ID, financial account, health info, biometric, IP address, SNS handle, employment, race/religion) + 3-level sensitivity score (none/low/high, IBM taxonomy)
+1. **Gate** — 13 PII category Nouls (person name, email/phone, postal address, date of birth, government ID, financial account, health info, biometric, IP address, SNS handle, employment, race/religion) + 3-level sensitivity score (none/low/high, IBM taxonomy)
 2. **Regex** — Extract emails, JP/intl phones, digit strings (10–16 chars); filter corporate addresses (noreply@, 0120-, server IPs)
 3. **Segmentation** — Generate person-name candidates using `Intl.Segmenter`, query Jev for judgment, assemble overlapping spans, attach title suffixes
 

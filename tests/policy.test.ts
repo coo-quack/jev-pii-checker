@@ -25,6 +25,16 @@ describe("applySensitivityPolicy", () => {
     expect(r.level).toBe("high");
   });
 
+  it("escalates a named person plus an HR or criminal record to high", () => {
+    const r = applySensitivityPolicy({
+      ...base,
+      level: "low",
+      categories: { person_name: 0.99, hr_or_criminal_record: 0.9, employment_info: 0.3 },
+    });
+    expect(r.level).toBe("high");
+    expect(r.reasons[0]).toContain("hr_or_criminal_record");
+  });
+
   it("does not escalate a special category without a named person", () => {
     const r = applySensitivityPolicy({
       ...base,

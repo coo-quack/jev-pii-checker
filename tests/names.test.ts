@@ -116,3 +116,44 @@ describe("Title suffix attachment", () => {
     expect(candTexts.some((t) => t.includes("副社長"))).toBe(true);
   });
 });
+
+describe("candidate generation: titles, initials, connectors, scripts", () => {
+  const texts = (t: string) => generateNameCandidates(t).map((c) => c.text);
+
+  test("never merges political or clerical titles into a name", () => {
+    const c = texts("Governor Katherine Wilson met Senator Robert Hunt and Mayor Linda Ortega.");
+    expect(c).toContain("Katherine Wilson");
+    expect(c).toContain("Robert Hunt");
+    expect(c).not.toContain("Governor Katherine Wilson");
+    expect(c).not.toContain("Senator");
+  });
+
+  test("treats an initial plus surname as one candidate and never an initial alone", () => {
+    const c = texts("The design team includes: T. Anderson (lead), Margaret Foster.");
+    expect(c).toContain("T. Anderson");
+    expect(c).not.toContain("T.");
+    expect(c).not.toContain("T");
+  });
+
+  test("excludes capitalized form labels such as Name and Email", () => {
+    const c = texts("Name: Dr. Andrew Rivera | Email: a.rivera@example.org");
+    expect(c).toContain("Andrew Rivera");
+    expect(c).not.toContain("Name");
+    expect(c).not.toContain("Email");
+  });
+
+  test("keeps a name followed by a colon (list item or chat line)", () => {
+    expect(texts("- Jennifer Lopez: sexual harassment")).toContain("Jennifer Lopez");
+    expect(texts("[14:20] 高橋由紀: こんにちは")).toContain("高橋由紀");
+  });
+
+  test("joins katakana names across ＝ and ・", () => {
+    const c = texts("新規講師: マリー＝ルイーズさん、イヴ・パトリック (スイス)");
+    expect(c).toContain("マリー＝ルイーズ");
+    expect(c).toContain("イヴ・パトリック");
+  });
+
+  test("accepts Hangul names in Japanese text", () => {
+    expect(texts("受付スタッフは王さんと김민수さんです。")).toContain("김민수");
+  });
+});

@@ -11,6 +11,7 @@ import {
   splitIntoChunks,
 } from "./chunk.js";
 import { runGate } from "./gate.js";
+import { applySensitivityPolicy } from "./policy.js";
 import { createJevJudge } from "./judge.js";
 import { locatePII } from "./locate.js";
 import { maskValue } from "./mask.js";
@@ -170,12 +171,22 @@ Examples:
       }
     }
 
+    const policy = applySensitivityPolicy({
+      level: aggLevel as "none" | "low" | "high",
+      categories: aggCats,
+      findings: chunkResults.flatMap((c) => c.findings),
+      threshold,
+      spansComputed: !skipSpans,
+    });
+
     const report: Report = {
       source,
       sensitivity: {
-        level: aggLevel,
+        level: policy.level,
+        model_level: policy.modelLevel,
         score: Math.max(...chunkResults.map((c) => c.gate.sensitivity.score)),
         probabilities: aggProbs,
+        reasons: policy.reasons,
       },
       categories: aggCats,
       findings: allFindings,

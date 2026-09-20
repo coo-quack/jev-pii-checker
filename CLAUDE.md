@@ -19,6 +19,7 @@ CLI for scanning text and files for PII using TypeSafe's Jev model. Three-layer 
 - `bun run format` — Biome format
 - `bun run dev` — Run CLI directly from source
 - `bun run eval` — Run accuracy evaluation over `tests/fixtures/eval_corpus.json` (requires `TYPESAFE_API_KEY`)
+- `bun run eval --corpus tests/fixtures/eval_holdout.json` — Evaluate on a held-out test corpus
 - `bun run ci` — Full CI pipeline
 
 ## Project Structure
@@ -27,14 +28,15 @@ CLI for scanning text and files for PII using TypeSafe's Jev model. Three-layer 
 src/
   cli.ts           # CLI entry, argument parsing, file I/O
   judge.ts         # Judge interface and TypeSafeClient wrapper
-  gate.ts          # PII category nouls + sensitivity score
+  gate.ts          # PII category nouls + sensitivity score (argmax)
+  policy.ts        # Code-side sensitivity policy (escalation, flooring)
   chunk.ts         # Text chunking at paragraph/sentence boundaries
   extract/
-    regex.ts       # Email, phone, digit-string extraction
-    names.ts       # Person-name candidate generation with segmenter
+    regex.ts       # Email, phone, digit-string extraction (including SSN, national_id)
+    names.ts       # Person-name candidate generation (titles, initials, katakana, Hangul)
   locate.ts        # Orchestrates regex + name judgment, span assembly
   mask.ts          # Value masking helper (first 2 + … + last 1)
-  report.ts        # JSON and human output formatting
+  report.ts        # JSON and human output formatting (model_level, reasons)
 
 tests/
   fixtures/

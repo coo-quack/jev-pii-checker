@@ -22,13 +22,17 @@ const EMAIL_REGEX =
 const PHONE_REGEX_JP =
   /(?:0\d{1,4}[- ]?\d{1,4}[- ]?\d{3,4}|\(0\d{1,4}\)[- ]?\d{1,4}[- ]?\d{3,4}|0\d{1,4}\(\d{1,4}\)\d{3,4}|\+81[- ]?\d{1,4}[- ]?\d{1,4}[- ]?\d{3,4})/g;
 
-const PHONE_REGEX_US = /(?:\(?\d{3}\)?[- .]\d{3}[- .]\d{4})/g;
+const PHONE_REGEX_US = /(?:(?:1[- ])?\(?\d{3}\)?[- .]\d{3}[- .]\d{4})/g;
+
+// US social security number 3-2-4; typed by the model like other numbers.
+const SSN_REGEX = /\b\d{3}-\d{2}-\d{4}\b/g;
 
 const PHONE_REGEX_INTL =
   /\+(?!81)[0-9]{1,3}[- ]?\(?[0-9]{1,4}\)?[- ]?[0-9]{1,4}[- ]?[0-9]{2,4}(?:[- ]?[0-9]{2,4})?/g;
 
 // Digit strings: 10-16 digits with optional spaces/hyphens, but excluding dates and ISBN
-const DIGIT_REGEX = /\d{2,}(?:[\s-]?\d{2,})*/g;
+// Not inside an alphanumeric token: 1234567890abcd is an ID, not a 10-digit number.
+const DIGIT_REGEX = /(?<![A-Za-z0-9])\d{2,}(?:[\s-]?\d{2,})*(?![A-Za-z0-9])/g;
 
 function extractMatches(text: string, regex: RegExp, kind: string): RegexMatch[] {
   const matches: RegexMatch[] = [];
@@ -103,6 +107,10 @@ export function extractPhones(text: string): RegexMatch[] {
   }
 
   return filtered;
+}
+
+function extractSSNs(text: string): RegexMatch[] {
+  return extractMatches(text, SSN_REGEX, "number");
 }
 
 export function extractDigitStrings(text: string): RegexMatch[] {
@@ -194,5 +202,7 @@ export function extractAllRegex(text: string): RegexMatch[] {
   const digits = extractDigitStrings(text);
   const labelledIDs = extractLabelledShortIDs(text);
 
-  return deduplicateOverlaps([...emails, ...phones, ...digits, ...labelledIDs]);
+  const ssns = extractSSNs(text);
+
+  return deduplicateOverlaps([...emails, ...phones, ...digits, ...labelledIDs, ...ssns]);
 }

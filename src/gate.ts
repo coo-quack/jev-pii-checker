@@ -138,9 +138,21 @@ export async function runGate(judge: Judge, text: string): Promise<GateResult> {
     score = s.score;
     probabilities = s.probabilities ?? {};
 
-    const levelIndex = Math.round(score);
+    // The level is the most probable rubric step, not the rounded expected
+    // value: {none: 0.63, low: 0.12, high: 0.25} has a score of 0.62, which
+    // rounds to "low" although "none" is by far the likeliest answer.
     const levels: SensitivityLevel[] = ["none", "low", "high"];
-    level = levels[Math.min(levelIndex, 2)];
+    let best = -1;
+    for (let i = 0; i < levels.length; i++) {
+      const p = probabilities[String(i)];
+      if (p !== undefined && p > best) {
+        best = p;
+        level = levels[i];
+      }
+    }
+    if (best < 0) {
+      level = levels[Math.min(Math.round(score), 2)];
+    }
   }
 
   return {

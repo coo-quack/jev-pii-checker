@@ -113,13 +113,12 @@ jev-pii-checker file.txt
 
 ## Limitations
 
-- Cannot distinguish public figures (e.g., "Natsume Soseki" may be flagged as a person name)
-- Cannot verify checksums (e.g., credit card Luhn, passport format)
-- Cannot detect PII embedded in code (JSON, SQL, regex patterns)
-- Cannot identify company/organization names (out of scope)
-- Sensitivity for code/config snippets can be over-estimated (a `user_id` variable read as personal data)
-- A lone toll-free number can still lift sensitivity to low
-- Religion tied to a named person is scored `high` by the model even though IBM's table lists it as non-sensitive (Japanese law treats it as 要配慮個人情報, so this is kept)
+- **Public figures**: Cannot distinguish historical or public figures (e.g., "Natsume Soseki" may be flagged as a person name). Names are always treated as PII unless reviewed manually.
+- **Borderline HR/discipline records**: Sensitivity for confidential performance reviews and disciplinary records can flip between low and high across runs when the model's probabilities sit near 0.5 (e.g., 0.47/0.53 low/high boundary). Run multiple times for high-confidence assessments.
+- **Candidate rules are list-based**: Political/military/legal/clerical titles and form labels (Name, Email, Phone, Subject, etc.) are hard-coded. Unknown titles may still be merged into a name.
+- **Checksum verification**: Credit card Luhn checksums and passport/ID formats are not validated, so synthetic or invalid numbers may be flagged.
+- **Code/config snippets**: JSON, SQL, regex patterns treated as plain text; variables named like PII attributes (e.g., `person_name`, `user_id`, `phone_number`) may be over-reported.
+- **Organization names**: Out of scope; cannot identify company/brand/institution names.
 
 ## Development
 

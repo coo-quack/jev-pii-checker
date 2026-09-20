@@ -42,7 +42,7 @@ export async function locatePII(
 
   const genericMailboxRegex =
     /^(?:noreply|no-reply|do-not-reply|info|support|contact|sales|admin|postmaster|mailer-daemon|notifications)[a-zA-Z0-9._-]*@/i;
-  const tollFreeRegex = /^(?:0120|0800|1-800|0570)[- ]?/;
+  const tollFreeRegex = /^(?:0120|0800|0570|1[- ]?8(?:00|33|44|55|66|77|88))[- ]?/;
 
   for (const match of regex) {
     if (match.kind === "email") {
@@ -107,6 +107,7 @@ export async function locatePII(
               bank_account: "Bank account number",
               phone: "Phone number (mobile or landline)",
               driver_licence_or_passport: "Driver's licence or passport number",
+              national_id: "Social security number or other national identification number",
               order_or_tracking_number: "Order number or parcel tracking number",
               product_serial: "Product serial number or SKU",
               date: "Date or date-related number",
@@ -177,6 +178,7 @@ export async function locatePII(
             bank_account: "Bank account number",
             phone: "Phone number (mobile or landline)",
             driver_licence_or_passport: "Driver's licence or passport number",
+            national_id: "Social security number or other national identification number",
             order_or_tracking_number: "Order number or parcel tracking number",
             product_serial: "Product serial number or SKU",
             date: "Date or date-related number",
@@ -200,6 +202,21 @@ export async function locatePII(
         digitType !== "other";
 
       const maxProb = Math.max(...Object.values(digitAns.probabilities ?? {}));
+
+      if (digitType === "phone") {
+        // A digit string the model reads as a phone number (888-1234-5678) is
+        // reported as one; the regex layer only knows the common shapes.
+        findings.push({
+          type: "phone",
+          value: text.slice(match.start, match.end),
+          start: match.start,
+          end: match.end,
+          probability: maxProb,
+          detail: { number_type: digitType, probabilities: digitAns.probabilities },
+          pii: !tollFreeRegex.test(match.text),
+        });
+        continue;
+      }
 
       findings.push({
         type: "number",

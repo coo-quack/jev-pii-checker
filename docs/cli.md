@@ -85,6 +85,14 @@ echo $?  # 2 if high-sensitivity PII detected
 
 Reserved for future use. Currently does not change behavior (all requests are sequential).
 
+**`--corpus <path>`** (string, optional)
+
+Evaluation mode (used with `bun run eval`). Path to a held-out test corpus in JSON format (array of evaluation entries with `id`, `lang`, `format`, `text`, and expected `sensitivity` and `findings`). When provided, runs accuracy evaluation instead of scanning.
+
+```bash
+bun run eval --corpus tests/fixtures/eval_holdout.json
+```
+
 ### Help & Version
 
 **`--help`** (boolean)
@@ -146,12 +154,14 @@ Detected:
     "source": "file.txt",
     "sensitivity": {
       "level": "high",
+      "model_level": "low",
       "score": 2.1,
       "probabilities": {
         "none": 0.05,
         "low": 0.15,
         "high": 0.8
-      }
+      },
+      "reasons": ["escalated: person_name with health_info"]
     },
     "categories": {
       "person_name": 0.92,
@@ -195,7 +205,7 @@ Each finding includes:
     - `title`: Role or title prefix that was stripped during candidate generation (e.g., "部長" before a name)
     - `scores`: Two-stage judgment scores (person: does it refer to a person; name: is it a full or part of a name)
   - **number**: `{ number_type: string, probabilities?: Record<string, number> }`
-    - `number_type`: Classification (my_number, credit_card, bank_account, phone, driver_licence_or_passport, order_or_tracking_number, product_serial, date, other)
+    - `number_type`: Classification (my_number, credit_card, bank_account, phone, driver_licence_or_passport, national_id, order_or_tracking_number, product_serial, date, other)
     - `probabilities`: Full probability distribution from the judgment
 
 ## Examples

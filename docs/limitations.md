@@ -8,7 +8,10 @@ jev-pii-checker treats all person names as PII. It cannot distinguish between:
 
 - Natsume Soseki (historical novelist — in most contexts, not PII)
 - Albert Einstein (famous scientist)
+- A deceased person mentioned in a Wikipedia article or historical text
 - The person discussing them in a private document
+
+Historical and public figures can still score low sensitivity instead of none if the text lacks context tying them to the person reading the document.
 
 **Workaround**: Review findings and filter manually. The `--no-spans` flag disables name extraction entirely.
 
@@ -22,18 +25,13 @@ Digit strings are extracted and classified by Jev, but checksums are not validat
 
 This means **synthetic or invalid numbers may be flagged as PII**. Use the probability score to judge confidence.
 
-## Sensitivity Can Be Over-Estimated for Code Snippets
+## Borderline HR and Disciplinary Records
 
-When scanning code or configuration snippets, variables or fields named like personal attributes (e.g., `user_id`, `person_name`, `phone_number`) may be flagged as containing PII even though they are just identifiers:
+Confidential performance reviews and disciplinary documents can produce inconsistent sensitivity scores across runs. When the model's probabilities sit near the 0.5 boundary (e.g., 0.47/0.53 low/high split), a document can flip between low and high sensitivity depending on the exact phrasing and context window.
 
-```javascript
-const person_name = "template";
-const user_id = 123456;
-```
+Example: A termination recommendation with personal mitigating factors may hover at the boundary. Run evaluation multiple times or inspect `sensitivity.probabilities` in the JSON to assess confidence.
 
-The tool sees these strings and reports sensitivity accordingly. Review the actual values to confirm.
-
-**Workaround**: Use `--no-spans` to skip name detection and rely on regex-found emails/phones only.
+**Workaround**: For high-stakes decisions, inspect the full JSON output and the `probabilities` field; do not rely on a single run's sensitivity level.
 
 ## Cannot Detect PII in Code
 
@@ -84,15 +82,14 @@ The tool detects PII **in isolation**. It does not:
 - No distinction between official and casual mention
 - No verification against a company roster
 
-## Toll-Free Numbers Can Lift Sensitivity
+## Candidate Rules Are List-Based
 
-A lone toll-free number (0120, 0800, 0570, 1-800 prefix) in a document is flagged `pii: false` by rule, but if it appears with a person's name, the document may still be classified as `high` sensitivity because the named person + any contact information is treated as sensitive.
+Political/military/legal/clerical titles (Governor, Senator, Mayor, Judge, etc.) and capitalized form labels (Name, Email, Phone, Subject, etc.) are never candidates during name extraction. These are hard-coded lists, so unknown or regional titles may not be recognized:
 
-**Context matters**: "Call 0120-123-456" alone has low sensitivity; "Call John at 0120-123-456" has higher sensitivity.
+- "Comandante José" may still merge "Comandante" with "José" if the title is not in the list
+- Informal or organizational titles (Team Lead, Chapter Director) may be treated as name words
 
-## Religion Linked to Named Person Is Treated as High Sensitivity
-
-When a person name appears alongside religious affiliation, the model scores this as `high` sensitivity even though IBM's reference taxonomy lists religion as non-sensitive. This is intentional: under Japanese law (個人情報保護法), 要配慮個人情報 (sensitive personal information requiring care) includes religion when linked to a named person.
+**Workaround**: Use `--show-values` and review the detected names; report false positives if you find a pattern.
 
 ## Text Sent to TypeSafe API
 

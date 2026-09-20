@@ -150,11 +150,36 @@ The regex layer extracts digit strings (10–16 characters). Jev judges their ty
 
 - **credit_card**: 13–19 digits (Visa, Mastercard, Amex, Discover)
 - **my_number**: Japanese government ID (12 digits)
-- **order_number**: E-commerce or payment processing (less sensitive)
-- **serial_number**: Product or equipment ID (not sensitive)
-- **phone_extension**: Internal corporate phone (low sensitivity)
+- **national_id**: Social security number or other national identification number (e.g., US SSN 3-2-4 format)
+- **driver_licence_or_passport**: Driver's license or passport number
+- **bank_account**: Bank account number
+- **phone**: Phone number (when extracted as a pure digit string, not matched by phone regex)
+- **order_or_tracking_number**: E-commerce or parcel tracking (less sensitive)
+- **product_serial**: Product or equipment ID (not sensitive)
+- **date**: Date-related number (not sensitive)
+- **other**: Unknown or unlabelled number (not sensitive)
 
 These distinctions help filter noise and set appropriate confidence thresholds.
+
+### Sensitivity Policy for Special Categories
+
+The code-side sensitivity policy treats the following as **special categories** that trigger escalation to high sensitivity when a named person co-occurs with them:
+
+- **health_info**: Medical information, diagnosis, treatment details
+- **biometric**: Biometric data (fingerprint, facial recognition, iris scan)
+- **government_id**: Government-issued identifiers (マイナンバー, passport, driver's license, etc.)
+- **financial_account**: Credit card, bank account, financial information
+- **race_or_religion**: Race, ethnicity, or religious beliefs
+
+Similarly, these number types trigger escalation on their own:
+
+- **my_number**: Japanese My Number
+- **credit_card**: Credit card number
+- **bank_account**: Bank account number
+- **driver_licence_or_passport**: Driver's license or passport number
+- **national_id**: National ID number (e.g., SSN)
+
+This policy implements Japanese law (個人情報保護法): 要配慮個人情報 (sensitive personal information requiring care) includes these categories when linked to a named individual.
 
 ## Sensitivity Distribution
 

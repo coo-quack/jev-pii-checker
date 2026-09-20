@@ -15,8 +15,12 @@ export interface Report {
   source: string;
   sensitivity: {
     level: string;
+    /** The model's own rubric answer before the code-side policy. */
+    model_level: string;
     score: number;
     probabilities: Record<string, number>;
+    /** Why the policy changed the level; empty when it did not. */
+    reasons: string[];
   };
   categories: Record<string, number>;
   findings: ReportFinding[];
@@ -36,7 +40,11 @@ export function formatHuman(reports: Report[]): string {
 
   for (const report of reports) {
     output += `\n=== ${report.source} ===\n`;
-    output += `Sensitivity: ${report.sensitivity.level.toUpperCase()}\n`;
+    const policyNote =
+      report.sensitivity.reasons.length > 0
+        ? ` (model: ${report.sensitivity.model_level}; ${report.sensitivity.reasons.join("; ")})`
+        : "";
+    output += `Sensitivity: ${report.sensitivity.level.toUpperCase()}${policyNote}\n`;
     output += `Categories: ${
       Object.entries(report.categories)
         .filter(([, v]) => v > 0.5)

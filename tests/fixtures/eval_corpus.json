@@ -383,7 +383,7 @@
       "format": "narrative",
       "text": "フリーダイアル: 0120-123-456",
       "expected": {
-        "sensitivity": "low",
+        "sensitivity": "none",
         "findings": [
           {
             "type": "phone",

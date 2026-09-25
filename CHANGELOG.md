@@ -2,7 +2,7 @@
 
 ## v0.3.2 (2026-09-26)
 
-- Patch release
+- Maintenance release with no functional changes.
 
 ## v0.3.1 (2026-09-20)
 

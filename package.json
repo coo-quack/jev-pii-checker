@@ -1,6 +1,6 @@
 {
   "name": "@coo-quack/jev-pii-checker",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "CLI for scanning text and files for PII using TypeSafe's Jev model.",
   "keywords": [
     "bun",

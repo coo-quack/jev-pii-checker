@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.3.2 (2026-09-26)
+
+- Patch release
+
 ## v0.3.1 (2026-09-20)
 
 - New gate category `hr_or_criminal_record`: a disciplinary action, performance evaluation, dismissal or termination decision, harassment or misconduct complaint, or criminal or arrest record about an identifiable person. It joins the policy's special categories, so such a record about a named person is `high` deterministically instead of depending on the model's rubric answer (a termination-recommendation review sat at 0.47/0.53). The question asks for a formal record and excludes casual praise or criticism ("Taro Yamada's report was excellent" scores 0.16, a chat complaint about a proposal 0.04, while a review with a rating, a disciplinary memo, a complaint list and a named arrest report score 0.87–0.98; a plain staff list 0.01).

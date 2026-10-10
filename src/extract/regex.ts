@@ -32,7 +32,9 @@ const PHONE_REGEX_INTL =
 
 // Digit strings: 10-16 digits with optional spaces/hyphens, but excluding dates and ISBN
 // Not inside an alphanumeric token: 1234567890abcd is an ID, not a 10-digit number.
-const DIGIT_REGEX = /(?<![A-Za-z0-9])\d{2,}(?:[\s-]?\d{2,})*(?![A-Za-z0-9])/g;
+// The separator is required so each digit run has exactly one parse; an optional
+// separator lets a run be split many ways and backtracks exponentially (ReDoS).
+const DIGIT_REGEX = /(?<![A-Za-z0-9])\d{2,}(?:[\s-]\d{2,})*(?![A-Za-z0-9])/g;
 
 function extractMatches(text: string, regex: RegExp, kind: string): RegexMatch[] {
   const matches: RegexMatch[] = [];

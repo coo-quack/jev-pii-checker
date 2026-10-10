@@ -182,6 +182,14 @@ describe("Digit String Extraction", () => {
     const matches = extractDigitStrings(text);
     expect(matches.length).toBe(0);
   });
+
+  test("returns quickly on a long digit run followed by a letter", () => {
+    const text = `${"1".repeat(200)}a`;
+    const started = performance.now();
+    const matches = extractDigitStrings(text);
+    expect(performance.now() - started).toBeLessThan(1000);
+    expect(matches).toHaveLength(0);
+  });
 });
 
 describe("regex additions: SSN, 1-8xx, alphanumeric IDs", () => {

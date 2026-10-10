@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.3.3 (2026-10-10)
+
+- A long run of digits followed by a letter made the digit scan backtrack without end, because a run could be split at an optional separator in exponentially many ways. The separator is now required; the matched numbers are unchanged (#52)
+- Publish to npm only from a job in the `npm-release` environment, which only `main` can deploy to (#53)
+- Update development dependencies (#43, #45, #46, #48, #49, #51) and actions/setup-node to v7.1.0 (#50)
+
 ## v0.3.2 (2026-09-26)
 
 - Maintenance release with no functional changes.

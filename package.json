@@ -54,7 +54,7 @@
   },
   "devDependencies": {
     "@types/bun": "latest",
-    "knip": "6.45.0",
+    "knip": "6.45.1",
     "oxfmt": "0.78.0",
     "oxlint": "1.93.0",
     "typescript": "7.0.2",

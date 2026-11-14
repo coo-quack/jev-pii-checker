@@ -7,7 +7,7 @@ on:
   pull_request:
     branches: [main, develop]
   schedule:
-    - cron: '47 19 * * 0' # Sunday 19:47 UTC = Monday 04:47 JST
+    - cron: "47 19 * * 0" # Sunday 19:47 UTC = Monday 04:47 JST
 
 concurrency:
   group: audit-${{ github.event.pull_request.number || github.ref }}

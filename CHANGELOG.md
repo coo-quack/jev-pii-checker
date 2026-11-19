@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.3.4 (2026-11-20)
+
+- Update @typesafe-ai/sdk to v0.7.0 (#61)
+- Run the dependency audit weekly as well as on pull requests (#87), and keep automated pull requests up to date with `develop`
+- Build the release with Node.js 26.13.1 (#62, #67, #70, #72, #86)
+- Update development dependencies (#57, #58, #60, #63, #64, #65, #66, #68, #69, #71, #73, #74, #75, #78, #79, #80, #81, #82, #83, #84, #85, #88, #89, #90) and actions/create-github-app-token to v3.3.0 (#59)
+
 ## v0.3.3 (2026-10-10)
 
 - A long run of digits followed by a letter made the digit scan backtrack without end, because a run could be split at an optional separator in exponentially many ways. The separator is now required; the matched numbers are unchanged (#52)
